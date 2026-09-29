@@ -18,9 +18,6 @@ from moe_engine.experts.interface import (
 )
 from moe_engine.models.adapter import IncompatibleCheckpointError, check_dtype
 
-HF_MODEL_ID = "allenai/OLMoE-1B-7B-0924"
-HF_REVISION = "6d84c48581ece794365f2b8e9cfb043c68ade9c5"
-
 _EXPERT_PROJECTIONS = ("gate_proj", "up_proj", "down_proj")
 _LAYER_DENSE_WEIGHTS = (
     "input_layernorm",
@@ -133,7 +130,7 @@ def random_olmoe_expert(
 
 
 class OlmoeAdapter:
-    """Builds OLMoE components from a Hugging Face checkpoint."""
+    """Builds OLMoE components from a checkpoint in the Hugging Face layout."""
 
     def __init__(
         self, config: OlmoeExpertConfig, tie_word_embeddings: bool = False

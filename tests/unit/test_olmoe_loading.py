@@ -7,7 +7,6 @@ import torch
 from safetensors.torch import save_file
 from torch.nn import functional as F
 
-from moe_engine.checkpoint.download import CheckpointSpec, ensure_checkpoint
 from moe_engine.checkpoint.loader import (
     INDEX_NAME,
     SINGLE_FILE_NAME,
@@ -24,8 +23,6 @@ from moe_engine.models.adapter import (
     UnsupportedDtypeError,
 )
 from moe_engine.models.olmoe import (
-    HF_MODEL_ID,
-    HF_REVISION,
     OLMOE_1B_7B,
     OlmoeAdapter,
     OlmoeExpertConfig,
@@ -152,10 +149,6 @@ def test_real_config_gives_the_olmoe_1b_7b_layout() -> None:
 
     assert adapter.config == OLMOE_1B_7B
     assert not adapter.tie_word_embeddings
-
-
-def test_pinned_checkpoint_spec_is_valid(tmp_path: Path) -> None:
-    CheckpointSpec(model_id=HF_MODEL_ID, revision=HF_REVISION, local_dir=tmp_path)
 
 
 @pytest.mark.parametrize(
@@ -349,28 +342,3 @@ def test_missing_dense_weight_fails(tmp_path: Path, adapter: OlmoeAdapter) -> No
 
     with pytest.raises(MissingWeightError):
         adapter.load_dense_weights(CheckpointReader(tmp_path))
-
-
-def test_downloaded_checkpoint_loads_offline_on_a_later_start(tmp_path: Path) -> None:
-    tensors = small_checkpoint_tensors()
-    spec = CheckpointSpec(
-        model_id=HF_MODEL_ID, revision=HF_REVISION, local_dir=tmp_path / "olmoe"
-    )
-
-    def fixture_downloader(spec: CheckpointSpec) -> None:
-        write_checkpoint(spec.local_dir, tensors)
-
-    def offline_downloader(spec: CheckpointSpec) -> None:
-        raise AssertionError("a later start must not download")
-
-    ensure_checkpoint(spec, fixture_downloader)
-    checkpoint_dir = ensure_checkpoint(spec, offline_downloader)
-    reader = CheckpointReader(checkpoint_dir)
-    adapter = OlmoeAdapter.from_hf_config(reader.config())
-    selected = ExpertId(1, 3)
-    x = torch.randn(4, SMALL.hidden_size)
-
-    with torch.no_grad():
-        output = adapter.load_expert(reader, selected)(x)
-
-    torch.testing.assert_close(output, reference_expert(tensors, selected, x))

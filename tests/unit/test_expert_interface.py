@@ -4,6 +4,7 @@ from pathlib import Path
 import pytest
 import torch
 
+import moe_engine.checkpoint
 import moe_engine.experts
 import moe_engine.models
 from moe_engine.experts.interface import (
@@ -22,6 +23,7 @@ SMALL = OlmoeExpertConfig(
 NETWORKING_MODULES = {
     "asyncio",
     "http",
+    "huggingface_hub",
     "requests",
     "selectors",
     "socket",
@@ -126,10 +128,14 @@ def _is_networking(module: str) -> bool:
 
 @pytest.mark.parametrize(
     "path",
-    _module_files(moe_engine.experts) + _module_files(moe_engine.models),
+    _module_files(moe_engine.experts)
+    + _module_files(moe_engine.models)
+    + _module_files(moe_engine.checkpoint),
     ids=lambda path: f"{path.parent.name}/{path.name}",
 )
-def test_expert_and_model_code_does_not_import_networking(path: Path) -> None:
+def test_expert_model_and_checkpoint_code_does_not_import_networking(
+    path: Path,
+) -> None:
     imported = _imported_modules(path)
 
     assert not {module for module in imported if _is_networking(module)}
