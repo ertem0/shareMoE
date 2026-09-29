@@ -9,7 +9,6 @@ from moe_engine.experts.interface import (
     UnknownExpertError,
 )
 from moe_engine.models.olmoe import (
-    OLMOE_1B_7B,
     OlmoeExpertConfig,
     random_olmoe_expert,
 )
@@ -19,8 +18,8 @@ SMALL = OlmoeExpertConfig(
 )
 
 
-def test_expert_has_olmoe_weight_shapes() -> None:
-    expert = random_olmoe_expert(OLMOE_1B_7B, ExpertId(0, 0))
+def test_expert_has_olmoe_weight_shapes(olmoe_1b_7b: OlmoeExpertConfig) -> None:
+    expert = random_olmoe_expert(olmoe_1b_7b, ExpertId(0, 0))
 
     assert expert.gate_proj.weight.shape == (1024, 2048)
     assert expert.up_proj.weight.shape == (1024, 2048)
@@ -28,25 +27,29 @@ def test_expert_has_olmoe_weight_shapes() -> None:
     assert all(linear.bias is None for linear in expert.children())
 
 
-def test_selected_expert_executes_with_olmoe_output_shape() -> None:
+def test_selected_expert_executes_with_olmoe_output_shape(
+    olmoe_1b_7b: OlmoeExpertConfig,
+) -> None:
     selected = ExpertId(15, 63)
     executor = LocalExpertExecutor(
-        {selected: random_olmoe_expert(OLMOE_1B_7B, selected)}
+        {selected: random_olmoe_expert(olmoe_1b_7b, selected)}
     )
-    hidden_states = torch.randn(7, OLMOE_1B_7B.hidden_size)
+    hidden_states = torch.randn(7, olmoe_1b_7b.hidden_size)
 
     output = executor.execute(selected, hidden_states)
 
-    assert output.shape == (7, OLMOE_1B_7B.hidden_size)
+    assert output.shape == (7, olmoe_1b_7b.hidden_size)
     assert output.dtype == torch.float32
 
 
-def test_repeated_execution_gives_the_same_output() -> None:
+def test_repeated_execution_gives_the_same_output(
+    olmoe_1b_7b: OlmoeExpertConfig,
+) -> None:
     selected = ExpertId(3, 41)
     executor = LocalExpertExecutor(
-        {selected: random_olmoe_expert(OLMOE_1B_7B, selected)}
+        {selected: random_olmoe_expert(olmoe_1b_7b, selected)}
     )
-    hidden_states = torch.randn(7, OLMOE_1B_7B.hidden_size)
+    hidden_states = torch.randn(7, olmoe_1b_7b.hidden_size)
 
     first = executor.execute(selected, hidden_states)
     second = executor.execute(selected, hidden_states)

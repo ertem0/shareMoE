@@ -56,15 +56,6 @@ class OlmoeExpertConfig:
             )
 
 
-# Expert layout of allenai/OLMoE-1B-7B-0924.
-OLMOE_1B_7B = OlmoeExpertConfig(
-    hidden_size=2048,
-    intermediate_size=1024,
-    num_layers=16,
-    num_experts=64,
-)
-
-
 def _uninitialized_linear(
     in_features: int, out_features: int, dtype: torch.dtype
 ) -> nn.Linear:

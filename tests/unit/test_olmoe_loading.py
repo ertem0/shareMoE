@@ -23,7 +23,6 @@ from moe_engine.models.adapter import (
     UnsupportedDtypeError,
 )
 from moe_engine.models.olmoe import (
-    OLMOE_1B_7B,
     OlmoeAdapter,
     OlmoeExpertConfig,
 )
@@ -144,10 +143,12 @@ def adapter() -> OlmoeAdapter:
     return OlmoeAdapter.from_hf_config(SMALL_HF_CONFIG)
 
 
-def test_real_config_gives_the_olmoe_1b_7b_layout() -> None:
+def test_real_config_gives_the_olmoe_1b_7b_layout(
+    olmoe_1b_7b: OlmoeExpertConfig,
+) -> None:
     adapter = OlmoeAdapter.from_hf_config(OLMOE_1B_7B_HF_CONFIG)
 
-    assert adapter.config == OLMOE_1B_7B
+    assert adapter.config == olmoe_1b_7b
     assert not adapter.tie_word_embeddings
 
 
