@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+
+# Environment (uv.lock is committed, the venv is not)
+.venv/
+.env
+
+# Tool caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Claude Code (personal files only, .claude/settings.json and CLAUDE.md are committed)
+.claude/**/*.local.*
+CLAUDE.local.md
+
+# Model checkpoints and weights
+checkpoints/
+*.safetensors
+*.pt
+*.pth
+*.bin
+
+# Benchmark output
+bench_results/
+
+# Editors and OS
+.vscode/
+.idea/
+.DS_Store
