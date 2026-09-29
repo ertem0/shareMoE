@@ -14,7 +14,8 @@ from moe_engine.experts.interface import (
     LocalExpertExecutor,
     UnknownExpertError,
 )
-from moe_engine.models.olmoe import OlmoeExpertConfig, random_olmoe_expert
+from moe_engine.models.olmoe import OlmoeExpertConfig
+from support.olmoe import random_olmoe_expert
 
 SMALL = OlmoeExpertConfig(
     hidden_size=16, intermediate_size=8, num_layers=2, num_experts=4

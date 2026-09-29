@@ -40,7 +40,6 @@ class OlmoeExpertConfig:
     intermediate_size: int
     num_layers: int
     num_experts: int
-    initializer_range: float = 0.02
 
     def validate(self, expert: ExpertId) -> None:
         """Raise `UnknownExpertError` if `expert` is outside this model."""
@@ -93,31 +92,6 @@ class OlmoeExpert(nn.Module):
             )
         gated = F.silu(self.gate_proj(hidden_states)) * self.up_proj(hidden_states)
         return self.down_proj(gated)
-
-
-def random_olmoe_expert(
-    config: OlmoeExpertConfig,
-    expert: ExpertId,
-    seed: int = 0,
-    dtype: torch.dtype = torch.float32,
-) -> OlmoeExpert:
-    """Build an expert with random weights for testing.
-
-    The weights depend only on `seed` and `expert`, so the same arguments
-    always produce the same expert.
-    """
-    config.validate(expert)
-    module = OlmoeExpert(config.hidden_size, config.intermediate_size, dtype=dtype)
-    # Hashing a tuple of ints is deterministic across Python processes.
-    generator = torch.Generator().manual_seed(
-        hash((seed, expert.layer_id, expert.expert_id)) & 0xFFFF_FFFF_FFFF_FFFF
-    )
-    with torch.no_grad():
-        for linear in (module.gate_proj, module.up_proj, module.down_proj):
-            values = torch.empty(linear.weight.shape, dtype=torch.float32)
-            values.normal_(mean=0.0, std=config.initializer_range, generator=generator)
-            linear.weight.copy_(values)
-    return module
 
 
 class OlmoeAdapter:

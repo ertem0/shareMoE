@@ -8,10 +8,8 @@ from moe_engine.experts.interface import (
     LocalExpertExecutor,
     UnknownExpertError,
 )
-from moe_engine.models.olmoe import (
-    OlmoeExpertConfig,
-    random_olmoe_expert,
-)
+from moe_engine.models.olmoe import OlmoeExpert, OlmoeExpertConfig
+from support.olmoe import random_olmoe_expert
 
 SMALL = OlmoeExpertConfig(
     hidden_size=16, intermediate_size=8, num_layers=2, num_experts=4
@@ -57,34 +55,12 @@ def test_repeated_execution_gives_the_same_output(
     torch.testing.assert_close(first, second)
 
 
-def test_same_seed_and_id_build_the_same_weights() -> None:
-    first = random_olmoe_expert(SMALL, ExpertId(1, 2), seed=7)
-    second = random_olmoe_expert(SMALL, ExpertId(1, 2), seed=7)
-
-    for name, weight in first.state_dict().items():
-        torch.testing.assert_close(weight, second.state_dict()[name])
-
-
-@pytest.mark.parametrize(
-    "other",
-    [(ExpertId(1, 3), 7), (ExpertId(0, 2), 7), (ExpertId(1, 2), 8)],
-)
-def test_different_seed_or_id_build_different_weights(
-    other: tuple[ExpertId, int],
-) -> None:
-    expert, seed = other
-    reference = random_olmoe_expert(SMALL, ExpertId(1, 2), seed=7)
-    candidate = random_olmoe_expert(SMALL, expert, seed=seed)
-
-    assert not torch.allclose(reference.gate_proj.weight, candidate.gate_proj.weight)
-
-
 def test_building_an_expert_does_not_consume_global_random_state() -> None:
     torch.manual_seed(0)
     expected = torch.rand(1)
 
     torch.manual_seed(0)
-    random_olmoe_expert(SMALL, ExpertId(0, 0))
+    OlmoeExpert(SMALL.hidden_size, SMALL.intermediate_size)
     actual = torch.rand(1)
 
     torch.testing.assert_close(actual, expected)
@@ -127,9 +103,9 @@ def test_empty_batch_gives_empty_output() -> None:
 
 
 @pytest.mark.parametrize("expert", [ExpertId(2, 0), ExpertId(0, 4)])
-def test_random_expert_rejects_ids_outside_the_model(expert: ExpertId) -> None:
+def test_config_rejects_ids_outside_the_model(expert: ExpertId) -> None:
     with pytest.raises(UnknownExpertError):
-        random_olmoe_expert(SMALL, expert)
+        SMALL.validate(expert)
 
 
 def test_expert_rejects_wrong_hidden_size() -> None:
