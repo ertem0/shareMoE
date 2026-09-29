@@ -68,7 +68,7 @@ Each milestone has a status (`not started`, `in progress` or `done`). Only one m
 
 ### Milestone 1: Local expert execution
 
-Status: not started
+Status: in progress
 
 Scope:
 
