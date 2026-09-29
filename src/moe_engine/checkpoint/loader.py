@@ -29,6 +29,10 @@ class CheckpointReader:
     """Reads the config and individual tensors of a local checkpoint."""
 
     def __init__(self, checkpoint_dir: Path) -> None:
+        if not checkpoint_dir.is_dir():
+            raise CheckpointFormatError(
+                f"checkpoint directory {checkpoint_dir} does not exist"
+            )
         self._dir = checkpoint_dir
         self._weight_map = self._read_weight_map()
 

@@ -77,6 +77,18 @@ def test_unknown_tensor_name_fails(tmp_path: Path) -> None:
         CheckpointReader(tmp_path).load(["missing.weight"])
 
 
+def test_missing_directory_fails(tmp_path: Path) -> None:
+    with pytest.raises(CheckpointFormatError, match="does not exist"):
+        CheckpointReader(tmp_path / "absent")
+
+
+def test_file_instead_of_directory_fails(tmp_path: Path) -> None:
+    write_single(tmp_path)
+
+    with pytest.raises(CheckpointFormatError, match="does not exist"):
+        CheckpointReader(tmp_path / SINGLE_FILE_NAME)
+
+
 def test_empty_directory_fails(tmp_path: Path) -> None:
     with pytest.raises(CheckpointFormatError):
         CheckpointReader(tmp_path)
