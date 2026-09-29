@@ -74,7 +74,7 @@ The directory stores one entry per `(layer_id, expert_id)` in the model, includi
 class ExpertEntry:
     layer_id: int
     expert_id: int
-    status: ExpertStatus      # UNALLOCATED, RESERVED, LOADING, READY
+    status: ExpertStatus  # UNALLOCATED, RESERVED, LOADING, READY
     node_id: str | None
 ```
 
