@@ -39,7 +39,7 @@ This document describes how the engine is built. [PROJECT.md](PROJECT.md) descri
 
 | Component        | Responsibility                                                                         |
 | :--------------- | :------------------------------------------------------------------------------------- |
-| Checkpoint store | Downloads the checkpoint once and reads individual tensors from local storage          |
+| Checkpoint store | Reads individual tensors from the local checkpoint directory given at startup          |
 | Model adapter    | Builds dense components and expert modules from checkpoint tensors                     |
 | Dense runtime    | Runs embeddings, attention, routers, norms and the LM head, and owns the KV cache      |
 | Expert directory | Maps every expert to its owner node and status                                         |
@@ -235,7 +235,6 @@ src/moe_engine/
 │   ├── adapter.py        # model adapter interface
 │   └── olmoe.py          # OLMoE adapter
 ├── checkpoint/
-│   ├── download.py
 │   └── loader.py
 ├── protocol/
 │   ├── framing.py

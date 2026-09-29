@@ -15,7 +15,7 @@ What does remote expert execution cost in communication time relative to expert 
 ### Coordinator
 
 - There is one coordinator per deployment. This is not enforced explicitly, because every worker connects to a single coordinator address.
-- Holds the full model checkpoint on local storage.
+- Holds the full model checkpoint on local storage, in a directory given at startup.
 - Hosts and computes every non-expert component: embeddings, attention, routers, normalization layers and the LM head.
 - Initializes workers by allocating experts to them and sending those experts' weights over TCP.
 - Keeps an expert directory that answers "which node holds expert `(layer_id, expert_id)`?"
@@ -61,6 +61,7 @@ Each worker keeps two TCP connections to the coordinator, a control connection a
 - Training or fine-tuning.
 - Production-scale serving.
 - More than one coordinator.
+- Downloading models. The coordinator is given a local checkpoint directory.
 
 ## Milestones
 
@@ -83,24 +84,22 @@ Done when:
 - Repeated execution with the same input and weights gives the same output.
 - The interface has no dependency on networking.
 
-### Milestone 2: Checkpoint download and component loading
+### Milestone 2: Checkpoint and component loading
 
 Status: in progress
 
 Scope:
 
-- Configurable Hugging Face model ID, pinned revision and local checkpoint directory.
-- Download the checkpoint to the coordinator's storage once and reuse it on later starts.
+- The coordinator is given the path of a local checkpoint directory. The engine never downloads models.
 - Load a single expert by `(layer_id, expert_id)` without building the whole model in memory.
 - Load the non-expert components separately from the experts.
-- Keep model-specific weight extraction in the model adapter, separate from download logic.
-- Fail explicitly on unknown experts, missing weights, incompatible metadata or download failures.
+- Keep model-specific weight extraction in the model adapter, separate from file reading.
+- Fail explicitly on a missing or incomplete checkpoint directory, unknown experts, missing weights or incompatible metadata.
 
 Done when:
 
-- The checkpoint downloads to the configured directory and is reused on a later start.
 - A loaded expert matches reference execution with the same weights and inputs within floating-point tolerance.
-- Loading works offline once the checkpoint files are present.
+- Loading reads only the given directory, and the checkpoint code has no networking dependency.
 - Tests use small local fixtures and need no Hugging Face access.
 
 ### Milestone 3: Expert worker
