@@ -9,7 +9,6 @@ from dataclasses import dataclass
 import torch
 from torch import nn
 from torch.nn import functional as F
-from torch.nn.utils import skip_init
 
 from moe_engine.checkpoint.loader import CheckpointReader
 from moe_engine.experts.interface import (
@@ -69,6 +68,17 @@ OLMOE_1B_7B = OlmoeExpertConfig(
 )
 
 
+def _uninitialized_linear(
+    in_features: int, out_features: int, dtype: torch.dtype
+) -> nn.Linear:
+    # Built on the meta device, so the weights are allocated but never
+    # initialized and building an expert never consumes the global random state.
+    linear = nn.Linear(
+        in_features, out_features, bias=False, device="meta", dtype=dtype
+    )
+    return linear.to_empty(device="cpu")
+
+
 class OlmoeExpert(nn.Module):
     """One OLMoE expert: a SwiGLU MLP without biases."""
 
@@ -79,17 +89,9 @@ class OlmoeExpert(nn.Module):
         dtype: torch.dtype = torch.float32,
     ) -> None:
         super().__init__()
-        # skip_init leaves the weights uninitialized, so building an expert
-        # never consumes the global random state.
-        self.gate_proj = skip_init(
-            nn.Linear, hidden_size, intermediate_size, bias=False, dtype=dtype
-        )
-        self.up_proj = skip_init(
-            nn.Linear, hidden_size, intermediate_size, bias=False, dtype=dtype
-        )
-        self.down_proj = skip_init(
-            nn.Linear, intermediate_size, hidden_size, bias=False, dtype=dtype
-        )
+        self.gate_proj = _uninitialized_linear(hidden_size, intermediate_size, dtype)
+        self.up_proj = _uninitialized_linear(hidden_size, intermediate_size, dtype)
+        self.down_proj = _uninitialized_linear(intermediate_size, hidden_size, dtype)
 
     def forward(self, hidden_states: torch.Tensor) -> torch.Tensor:
         weight = self.gate_proj.weight
