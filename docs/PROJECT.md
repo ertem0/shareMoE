@@ -86,7 +86,7 @@ Done when:
 
 ### Milestone 2: Checkpoint and component loading
 
-Status: in progress
+Status: done
 
 Scope:
 
