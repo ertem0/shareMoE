@@ -41,3 +41,29 @@ Always run through `uv run`, never an activated venv or pip.
 ## After finishing a milestone
 
 Update its status in docs/PROJECT.md and tell me which acceptance criteria are covered by which tests.
+
+## Git
+
+### Commit messages
+
+Use Conventional Commits: `<type>(<scope>): <summary>`
+
+- Types: `feat`, `fix`, `test`, `refactor`, `docs`, `chore`, `perf`
+- Scopes: `experts`, `models`, `checkpoint`, `protocol`, `transport`, `coordinator`, `worker`, `bench`, `docs`, `deps`
+- Summary in imperative mood, lowercase, no trailing period, at most 72 characters.
+- Add a body when the reason for the change isn't obvious. Wrap it at 72 characters.
+- Reference the milestone in the body, e.g. `Milestone: 4`.
+
+Examples:
+
+- `feat(protocol): add frame encoder and decoder`
+- `test(coordinator): cover duplicate expert reservation`
+- `fix(transport): fail explicitly on truncated frames`
+
+### Workflow
+
+- One logical change per commit. Don't mix refactors with features.
+- Commit directly to `main` in small commits. Use a branch only when I ask for an experiment.
+- Run format, lint and tests before every commit. Don't commit if any of them fail.
+- Never amend or rewrite commits that were already pushed.
+- Never push. I push after reviewing.
